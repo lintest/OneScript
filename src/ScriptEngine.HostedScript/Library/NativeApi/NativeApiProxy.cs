@@ -22,6 +22,12 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public delegate void TDestroyObject(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate IntPtr TCreateVariant(Int32 length);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TFreeVariant(IntPtr ptr);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate Int32 TGetNProps(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -33,13 +39,32 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate bool TIsPropWritable(IntPtr ptr, Int32 lPropNum);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate void TGetPropName(IntPtr ptr, Int32 lPropNum, Int32 lPropAlias, PointerDelegate response);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate void TGetPropVal(IntPtr ptr, Int32 lPropNum, PointerDelegate response);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetPropVal(IntPtr ptr, Int32 lPropNum, ref NativeApiVariant value);
+        public delegate void TSetPropVal(IntPtr ptr, Int32 lPropNum, IntPtr variant);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantEmpty(IntPtr ptr, Int32 lPropNum);
+        
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantBool(IntPtr ptr, Int32 lPropNum, Boolean value);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantReal(IntPtr ptr, Int32 lPropNum, Double value);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantInt(IntPtr ptr, Int32 lPropNum, Int32 value);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantStr(IntPtr ptr, Int32 lPropNum, [MarshalAs(UnmanagedType.LPWStr)] string value, Int32 length);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantBlob(IntPtr ptr, Int32 lPropNum, IntPtr data, Int32 length);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate Int32 TGetNMethods(IntPtr ptr);
@@ -67,6 +92,8 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         public static TGetClassObject GetClassObject;
         public static TDestroyObject DestroyObject;
+        public static TCreateVariant CreateVariant;
+        public static TFreeVariant FreeVariant;
         public static TGetNProps GetNProps;
         public static TFindProp FindProp;
         public static TIsPropReadable IsPropReadable;
@@ -74,6 +101,11 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public static TGetPropName GetPropName;
         public static TGetPropVal GetPropVal;
         public static TSetPropVal SetPropVal;
+        public static TSetVariantEmpty SetVariantEmpty;
+        public static TSetVariantBool SetVariantBool;
+        public static TSetVariantReal SetVariantReal;
+        public static TSetVariantInt SetVariantInt;
+        public static TSetVariantStr SetVariantStr;
         public static TGetNMethods GetNMethods;
         public static TFindMethod FindMethod;
         public static TGetMethodName GetMethodName;
@@ -88,10 +120,13 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             string location = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string filename = System.IO.Path.GetDirectoryName(location)
                 + System.IO.Path.DirectorySeparatorChar + "ScriptEngine.NativeApi"
-                + (NativeApiKernel.IsLinux ? (IntPtr.Size == 8 ? "64" : "32") + ".so" : ".dll");
+                + (IntPtr.Size == 8 ? "64" : "32")
+                + (NativeApiKernel.IsLinux ? ".so" : ".dll");
             IntPtr module = NativeApiKernel.LoadLibrary(filename);
             GetClassObject = Marshal.GetDelegateForFunctionPointer<TGetClassObject>(NativeApiKernel.GetProcAddress(module, "GetClassObject"));
             DestroyObject = Marshal.GetDelegateForFunctionPointer<TDestroyObject>(NativeApiKernel.GetProcAddress(module, "DestroyObject"));
+            CreateVariant = Marshal.GetDelegateForFunctionPointer<TCreateVariant>(NativeApiKernel.GetProcAddress(module, "CreateVariant"));
+            FreeVariant = Marshal.GetDelegateForFunctionPointer<TFreeVariant>(NativeApiKernel.GetProcAddress(module, "FreeVariant"));
             GetNProps = Marshal.GetDelegateForFunctionPointer<TGetNProps>(NativeApiKernel.GetProcAddress(module, "GetNProps"));
             FindProp = Marshal.GetDelegateForFunctionPointer<TFindProp>(NativeApiKernel.GetProcAddress(module, "FindProp"));
             IsPropReadable = Marshal.GetDelegateForFunctionPointer<TIsPropReadable>(NativeApiKernel.GetProcAddress(module, "IsPropReadable"));
@@ -99,6 +134,12 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             GetPropName = Marshal.GetDelegateForFunctionPointer<TGetPropName>(NativeApiKernel.GetProcAddress(module, "GetPropName"));
             GetPropVal = Marshal.GetDelegateForFunctionPointer<TGetPropVal>(NativeApiKernel.GetProcAddress(module, "GetPropVal"));
             SetPropVal = Marshal.GetDelegateForFunctionPointer<TSetPropVal>(NativeApiKernel.GetProcAddress(module, "SetPropVal"));
+            SetVariantEmpty = Marshal.GetDelegateForFunctionPointer<TSetVariantEmpty>(NativeApiKernel.GetProcAddress(module, "SetVariantEmpty"));
+            SetVariantBool = Marshal.GetDelegateForFunctionPointer<TSetVariantBool>(NativeApiKernel.GetProcAddress(module, "SetVariantBool"));
+            SetVariantReal = Marshal.GetDelegateForFunctionPointer<TSetVariantReal>(NativeApiKernel.GetProcAddress(module, "SetVariantReal"));
+            SetVariantInt = Marshal.GetDelegateForFunctionPointer<TSetVariantInt>(NativeApiKernel.GetProcAddress(module, "SetVariantInt"));
+            SetVariantStr = Marshal.GetDelegateForFunctionPointer<TSetVariantStr>(NativeApiKernel.GetProcAddress(module, "SetVariantStr"));
+            GetPropVal = Marshal.GetDelegateForFunctionPointer<TGetPropVal>(NativeApiKernel.GetProcAddress(module, "GetPropVal"));
             GetNMethods = Marshal.GetDelegateForFunctionPointer<TGetNMethods>(NativeApiKernel.GetProcAddress(module, "GetNMethods"));
             FindMethod = Marshal.GetDelegateForFunctionPointer<TFindMethod>(NativeApiKernel.GetProcAddress(module, "FindMethod"));
             GetMethodName = Marshal.GetDelegateForFunctionPointer<TGetMethodName>(NativeApiKernel.GetProcAddress(module, "GetMethodName"));

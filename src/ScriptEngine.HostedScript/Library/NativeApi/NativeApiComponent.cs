@@ -144,12 +144,12 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             return result;
         }
 
-        public void SetPropValue(int propNum, IValue newVal)
+        public void SetPropValue(int propNum, IValue value)
         {
-            var variant = new NativeApiVariant();
-            variant.SetValue(newVal);
-            NativeApiProxy.SetPropVal(_object, propNum, ref variant);
-            variant.Clear();
+            IntPtr variant = NativeApiProxy.CreateVariant(1);
+            SetVariant(value, variant);
+            NativeApiProxy.SetPropVal(_object, propNum, variant);
+            NativeApiProxy.FreeVariant(variant);
         }
 
         public int GetMethodsCount()
@@ -241,6 +241,30 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             Marshal.FreeHGlobal(paramArray);
             if (ok)
                 retValue = result;
+        }
+
+        private void SetVariant(IValue value, IntPtr variant, Int32 number = 0)
+        {
+            switch (value.DataType)
+            {
+                case DataType.String:
+                    String str = value.AsString();
+                    NativeApiProxy.SetVariantStr(variant, number, str, str.Length);
+                    break;
+                case DataType.Boolean:
+                    NativeApiProxy.SetVariantBool(variant, number, value.AsBoolean());
+                    break;
+                case DataType.Number:
+                    Decimal num = value.AsNumber();
+                    if (num % 1 == 0)
+                        NativeApiProxy.SetVariantInt(variant, number, Convert.ToInt32(value.AsNumber()));
+                    else
+                        NativeApiProxy.SetVariantReal(variant, number, Convert.ToDouble(value.AsNumber()));
+                    break;
+                default:
+                    NativeApiProxy.SetVariantEmpty(variant, number);
+                    break;
+            }
         }
     }
 }
