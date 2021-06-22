@@ -5,6 +5,7 @@ was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
+using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
 using System;
 using System.Runtime.InteropServices;
@@ -137,9 +138,9 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         public IValue GetPropValue(int propNum)
         {
-            var result = ValueFactory.Create();
+            IValue result = ValueFactory.Create();
             NativeApiProxy.GetPropVal(_object, propNum,
-                variant => result = NativeApiVariant.GetValue(variant)
+                variant => result = GetVariant(variant)
             );
             return result;
         }
@@ -203,15 +204,18 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         private void SetDefValues(int methodNumber, int paramCount, IValue[] arguments)
         {
+/*
             for (int i = 0; i < paramCount; i++)
                 if (arguments[i] == null)
                     NativeApiProxy.GetParamDefValue(_object, methodNumber, i,
                         variant => arguments[i] = NativeApiVariant.GetValue(variant)
                     );
+*/
         }
 
         public void CallAsProcedure(int methodNumber, IValue[] arguments)
         {
+/*
             var paramArray = IntPtr.Zero;
             int paramCount = NativeApiProxy.GetNParams(_object, methodNumber);
             if (paramCount > 0)
@@ -222,10 +226,13 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             NativeApiVariant.GetValue(arguments, paramArray, paramCount);
             NativeApiVariant.Clear(paramArray, paramCount);
             Marshal.FreeHGlobal(paramArray);
+*/
         }
 
         public void CallAsFunction(int methodNumber, IValue[] arguments, out IValue retValue)
         {
+            retValue = ValueFactory.Create();
+/*
             var paramArray = IntPtr.Zero;
             int paramCount = NativeApiProxy.GetNParams(_object, methodNumber);
             if (paramCount > 0)
@@ -241,6 +248,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             Marshal.FreeHGlobal(paramArray);
             if (ok)
                 retValue = result;
+*/
         }
 
         private void SetVariant(IValue value, IntPtr variant, Int32 number = 0)
@@ -265,6 +273,24 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
                     NativeApiProxy.SetVariantEmpty(variant, number);
                     break;
             }
+        }
+
+        private IValue GetVariant(IntPtr variant, Int32 number = 0)
+        {
+            IValue value = ValueFactory.Create();
+            NativeApiProxy.GetVariant(variant, number,
+                (v, n) => value = ValueFactory.Create(),
+                (v, n, r) => value = ValueFactory.Create(r),
+                (v, n, r) => value = ValueFactory.Create((Decimal)r),
+                (v, n, r) => value = ValueFactory.Create((Decimal)r),
+                (v, n, r, s) => value = ValueFactory.Create(Marshal.PtrToStringUni(r, s)),
+                (v, n, r, s) => {
+                    byte[] buffer = new byte[s];
+                    Marshal.Copy(r, buffer, 0, s);
+                    value = ValueFactory.Create(new BinaryDataContext(buffer));
+                }
+            );
+            return value;
         }
     }
 }

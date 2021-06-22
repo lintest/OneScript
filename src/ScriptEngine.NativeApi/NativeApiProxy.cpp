@@ -234,6 +234,50 @@ DllExport void SetVariantBlob(tVariant* variant, int32_t number, const char* val
 	}
 }
 
+typedef void(_stdcall* TSetVariantEmpty)(tVariant*, int32_t);
+typedef void(_stdcall* TSetVariantBool)(tVariant*, int32_t, bool);
+typedef void(_stdcall* TSetVariantReal)(tVariant*, int32_t, double);
+typedef void(_stdcall* TSetVariantInt)(tVariant*, int32_t, int32_t);
+typedef void(_stdcall* TSetVariantBlob)(tVariant*, int32_t, void*, int32_t);
+
+DllExport void GetVariant(tVariant* variant, int32_t number, TSetVariantEmpty e, TSetVariantBool b, TSetVariantReal r, TSetVariantInt i, TSetVariantBlob s, TSetVariantBlob x)
+{
+	if (variant == nullptr) return;
+	switch (variant->vt) {
+	case VTYPE_EMPTY: 
+		e(variant, number); 
+		break;
+	case VTYPE_I2:
+	case VTYPE_I4:
+	case VTYPE_ERROR:
+	case VTYPE_UI1:
+		i(variant, number, variant->lVal); 
+		break;
+	case VTYPE_BOOL:
+		b(variant, number, variant->bVal); 
+		break;
+	case VTYPE_R4:
+	case VTYPE_R8:
+		r(variant, number, variant->dblVal); 
+		break;
+	case VTYPE_DATE:
+	case VTYPE_TM:
+		e(variant, number); 
+		break;
+	case VTYPE_PSTR:
+		e(variant, number); 
+		break;
+	case VTYPE_PWSTR:
+		s(variant, number, variant->pwstrVal, variant->strLen);
+		break;
+	case VTYPE_BLOB:
+		x(variant, number, variant->pstrVal, variant->strLen);
+		break;
+	default:
+		e(variant, number); 
+	}
+}
+
 DllExport bool IsPropReadable(ProxyComponent* proxy, int32_t lPropNum)
 {
 	CHECK_PROXY(false);

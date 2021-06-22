@@ -49,22 +49,25 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public delegate void TSetPropVal(IntPtr ptr, Int32 lPropNum, IntPtr variant);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantEmpty(IntPtr ptr, Int32 lPropNum);
+        public delegate void TSetVariantEmpty(IntPtr ptr, Int32 num);
         
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantBool(IntPtr ptr, Int32 lPropNum, Boolean value);
+        public delegate void TSetVariantBool(IntPtr ptr, Int32 num, Boolean value);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantReal(IntPtr ptr, Int32 lPropNum, Double value);
+        public delegate void TSetVariantReal(IntPtr ptr, Int32 num, Double value);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantInt(IntPtr ptr, Int32 lPropNum, Int32 value);
+        public delegate void TSetVariantInt(IntPtr ptr, Int32 num, Int32 value);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantStr(IntPtr ptr, Int32 lPropNum, [MarshalAs(UnmanagedType.LPWStr)] string value, Int32 length);
+        public delegate void TSetVariantStr(IntPtr ptr, Int32 num, [MarshalAs(UnmanagedType.LPWStr)] string value, Int32 length);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantBlob(IntPtr ptr, Int32 lPropNum, IntPtr data, Int32 length);
+        public delegate void TSetVariantBlob(IntPtr ptr, Int32 num, IntPtr data, Int32 length);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TGetVariant(IntPtr ptr, Int32 num, TSetVariantEmpty e, TSetVariantBool b, TSetVariantReal r, TSetVariantInt i, TSetVariantBlob s, TSetVariantBlob x);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate Int32 TGetNMethods(IntPtr ptr);
@@ -101,6 +104,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public static TGetPropName GetPropName;
         public static TGetPropVal GetPropVal;
         public static TSetPropVal SetPropVal;
+        public static TGetVariant GetVariant;
         public static TSetVariantEmpty SetVariantEmpty;
         public static TSetVariantBool SetVariantBool;
         public static TSetVariantReal SetVariantReal;
@@ -139,6 +143,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             SetVariantReal = Marshal.GetDelegateForFunctionPointer<TSetVariantReal>(NativeApiKernel.GetProcAddress(module, "SetVariantReal"));
             SetVariantInt = Marshal.GetDelegateForFunctionPointer<TSetVariantInt>(NativeApiKernel.GetProcAddress(module, "SetVariantInt"));
             SetVariantStr = Marshal.GetDelegateForFunctionPointer<TSetVariantStr>(NativeApiKernel.GetProcAddress(module, "SetVariantStr"));
+            GetVariant = Marshal.GetDelegateForFunctionPointer<TGetVariant>(NativeApiKernel.GetProcAddress(module, "GetVariant"));
             GetPropVal = Marshal.GetDelegateForFunctionPointer<TGetPropVal>(NativeApiKernel.GetProcAddress(module, "GetPropVal"));
             GetNMethods = Marshal.GetDelegateForFunctionPointer<TGetNMethods>(NativeApiKernel.GetProcAddress(module, "GetNMethods"));
             FindMethod = Marshal.GetDelegateForFunctionPointer<TFindMethod>(NativeApiKernel.GetProcAddress(module, "FindMethod"));
