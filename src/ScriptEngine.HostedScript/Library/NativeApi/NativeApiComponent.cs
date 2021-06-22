@@ -71,16 +71,9 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         {
             _host = host;
             _object = NativeApiProxy.GetClassObject(library.Module, componentName,
-                (wcode, source, descr, scode) =>
-                {
-                    _host.Echo("ОШИБКА: " + S(source) + " - " + S(descr), Status(wcode));
-                },
-                (source, message, data) => {
-                    _host.Echo("СОБЫТИЕ: " + S(source) + " - " + S(message) + " - " + S(data));
-                },
-                (status) => {
-                    _host.Echo("СТАТУС: " + S(status));
-                }
+                (wcode, source, descr, scode) => _host.Echo("ОШИБКА: " + S(source) + " - " + S(descr), Status(wcode)),
+                (source, message, data) => _host.Echo("СОБЫТИЕ: " + S(source) + " - " + S(message) + " - " + S(data)),
+                (status) => _host.Echo("СТАТУС: " + S(status))
             );
             DefineType(TypeManager.GetTypeByName(typeName));
         }
@@ -147,7 +140,8 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         public void SetPropValue(int propNum, IValue value)
         {
-            using (var variant = new NativeApiVariant()) {
+            using (var variant = new NativeApiVariant())
+            {
                 variant.Assign(value);
                 NativeApiProxy.SetPropVal(_object, propNum, variant.Ptr);
             };
@@ -181,16 +175,11 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             var paramCount = NativeApiProxy.GetNParams(_object, methodNumber);
             var paramArray = new ParameterDefinition[paramCount];
             for (int i = 0; i < paramCount; i++)
-                NativeApiProxy.GetParamDefValue(_object, methodNumber, i, variant =>
+                if (NativeApiProxy.HasParamDefValue(_object, methodNumber, i))
                 {
-/*
-                    if (NativeApiVariant.NotEmpty(variant))
-                    {
-                        paramArray[i].HasDefaultValue = true;
-                        paramArray[i].DefaultValueIndex = ParameterDefinition.UNDEFINED_VALUE_INDEX;
-                    }
-*/
-                });
+                    paramArray[i].HasDefaultValue = true;
+                    paramArray[i].DefaultValueIndex = ParameterDefinition.UNDEFINED_VALUE_INDEX;
+                };
 
             return new MethodInfo
             {
@@ -228,24 +217,19 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         public void CallAsFunction(int methodNumber, IValue[] arguments, out IValue retValue)
         {
-            retValue = ValueFactory.Create();
-/*
-            var paramArray = IntPtr.Zero;
+            var result = ValueFactory.Create();
             int paramCount = NativeApiProxy.GetNParams(_object, methodNumber);
-            if (paramCount > 0)
-                paramArray = Marshal.AllocHGlobal(NativeApiVariant.Size * paramCount);
-            SetDefValues(methodNumber, paramCount, arguments);
-            NativeApiVariant.SetValue(paramArray, arguments, paramCount);
-            IValue result = retValue = ValueFactory.Create();
-            bool ok = NativeApiProxy.CallAsFunc(_object, methodNumber, paramArray,
-                variant => result = NativeApiVariant.GetValue(variant)
-            );
-            NativeApiVariant.GetValue(arguments, paramArray, paramCount);
-            NativeApiVariant.Clear(paramArray, paramCount);
-            Marshal.FreeHGlobal(paramArray);
-            if (ok)
-                retValue = result;
-*/
+            using (var variant = new NativeApiVariant(paramCount))
+            {
+                SetDefValues(methodNumber, paramCount, arguments);
+                for (int i = 0; i < paramCount; i++)
+                    variant.Assign(arguments[i], i);
+
+                NativeApiProxy.CallAsFunc(_object, methodNumber, variant.Ptr,
+                    res => result = NativeApiVariant.Value(res)
+                );
+            }
+            retValue = result;
         }
     }
 }

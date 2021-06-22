@@ -50,7 +50,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate void TSetVariantEmpty(IntPtr ptr, Int32 num);
-        
+
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate void TSetVariantBool(IntPtr ptr, Int32 num, Boolean value);
 
@@ -67,7 +67,14 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public delegate void TSetVariantBlob(IntPtr ptr, Int32 num, IntPtr data, Int32 length);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TGetVariant(IntPtr ptr, Int32 num, TSetVariantEmpty e, TSetVariantBool b, TSetVariantReal r, TSetVariantInt i, TSetVariantBlob s, TSetVariantBlob x);
+        public delegate void TGetVariant(IntPtr ptr, Int32 num
+            , TSetVariantEmpty e
+            , TSetVariantBool b
+            , TSetVariantInt i
+            , TSetVariantReal r
+            , TSetVariantBlob s
+            , TSetVariantBlob x
+        );
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate Int32 TGetNMethods(IntPtr ptr);
@@ -80,6 +87,9 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate Int32 TGetNParams(IntPtr ptr, Int32 lMethodNum);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate bool THasParamDefValue(IntPtr ptr, Int32 lMethodNum, Int32 lParamNum);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate bool TGetParamDefValue(IntPtr ptr, Int32 lMethodNum, Int32 lParamNum, PointerDelegate response);
@@ -114,6 +124,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public static TFindMethod FindMethod;
         public static TGetMethodName GetMethodName;
         public static TGetNParams GetNParams;
+        public static THasParamDefValue HasParamDefValue;
         public static TGetParamDefValue GetParamDefValue;
         public static THasRetVal HasRetVal;
         public static TCallAsProc CallAsProc;
@@ -149,6 +160,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             FindMethod = Marshal.GetDelegateForFunctionPointer<TFindMethod>(NativeApiKernel.GetProcAddress(module, "FindMethod"));
             GetMethodName = Marshal.GetDelegateForFunctionPointer<TGetMethodName>(NativeApiKernel.GetProcAddress(module, "GetMethodName"));
             GetNParams = Marshal.GetDelegateForFunctionPointer<TGetNParams>(NativeApiKernel.GetProcAddress(module, "GetNParams"));
+            HasParamDefValue = Marshal.GetDelegateForFunctionPointer<THasParamDefValue>(NativeApiKernel.GetProcAddress(module, "HasParamDefValue"));
             GetParamDefValue = Marshal.GetDelegateForFunctionPointer<TGetParamDefValue>(NativeApiKernel.GetProcAddress(module, "GetParamDefValue"));
             HasRetVal = Marshal.GetDelegateForFunctionPointer<THasRetVal>(NativeApiKernel.GetProcAddress(module, "HasRetVal"));
             CallAsProc = Marshal.GetDelegateForFunctionPointer<TCallAsProc>(NativeApiKernel.GetProcAddress(module, "CallAsProc"));

@@ -240,32 +240,39 @@ typedef void(_stdcall* TSetVariantReal)(tVariant*, int32_t, double);
 typedef void(_stdcall* TSetVariantInt)(tVariant*, int32_t, int32_t);
 typedef void(_stdcall* TSetVariantBlob)(tVariant*, int32_t, void*, int32_t);
 
-DllExport void GetVariant(tVariant* variant, int32_t number, TSetVariantEmpty e, TSetVariantBool b, TSetVariantReal r, TSetVariantInt i, TSetVariantBlob s, TSetVariantBlob x)
+DllExport void GetVariant(tVariant* variant, int32_t number
+	, TSetVariantEmpty e
+	, TSetVariantBool b
+	, TSetVariantInt i
+	, TSetVariantReal r
+	, TSetVariantBlob s
+	, TSetVariantBlob x
+)
 {
 	if (variant == nullptr) return;
 	switch (variant->vt) {
-	case VTYPE_EMPTY: 
-		e(variant, number); 
+	case VTYPE_EMPTY:
+		e(variant, number);
 		break;
 	case VTYPE_I2:
 	case VTYPE_I4:
 	case VTYPE_ERROR:
 	case VTYPE_UI1:
-		i(variant, number, variant->lVal); 
+		i(variant, number, variant->lVal);
 		break;
 	case VTYPE_BOOL:
-		b(variant, number, variant->bVal); 
+		b(variant, number, variant->bVal);
 		break;
 	case VTYPE_R4:
 	case VTYPE_R8:
-		r(variant, number, variant->dblVal); 
+		r(variant, number, variant->dblVal);
 		break;
 	case VTYPE_DATE:
 	case VTYPE_TM:
-		e(variant, number); 
+		e(variant, number);
 		break;
 	case VTYPE_PSTR:
-		e(variant, number); 
+		e(variant, number);
 		break;
 	case VTYPE_PWSTR:
 		s(variant, number, variant->pwstrVal, variant->strLen);
@@ -274,7 +281,7 @@ DllExport void GetVariant(tVariant* variant, int32_t number, TSetVariantEmpty e,
 		x(variant, number, variant->pstrVal, variant->strLen);
 		break;
 	default:
-		e(variant, number); 
+		e(variant, number);
 	}
 }
 
@@ -317,6 +324,15 @@ DllExport int32_t GetNParams(ProxyComponent* proxy, int32_t lMethodNum)
 {
 	CHECK_PROXY(0);
 	return (int32_t)proxy->Component().GetNParams(lMethodNum);
+}
+
+DllExport bool ADDIN_API HasParamDefValue(ProxyComponent* proxy, int32_t lMethodNum, int32_t lParamNum)
+{
+	CHECK_PROXY(false);
+	tVariant variant = { 0 };
+	bool result = proxy->Component().GetParamDefValue(lMethodNum, lParamNum, &variant) && variant.vt != VTYPE_EMPTY;
+	ClearVariant(variant);
+	return result;
 }
 
 DllExport bool ADDIN_API GetParamDefValue(ProxyComponent* proxy, int32_t lMethodNum, int32_t lParamNum, VariantFuncRespond respond)
