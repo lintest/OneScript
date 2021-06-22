@@ -5,10 +5,8 @@ was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
-using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
 using System;
-using System.Runtime.InteropServices;
 
 namespace ScriptEngine.HostedScript.Library.NativeApi
 {
