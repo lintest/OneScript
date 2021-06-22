@@ -206,29 +206,24 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
 
         private void SetDefValues(int methodNumber, int paramCount, IValue[] arguments)
         {
-/*
             for (int i = 0; i < paramCount; i++)
                 if (arguments[i] == null)
                     NativeApiProxy.GetParamDefValue(_object, methodNumber, i,
-                        variant => arguments[i] = NativeApiVariant.GetValue(variant)
+                        variant => arguments[i] = NativeApiVariant.Value(variant)
                     );
-*/
         }
 
         public void CallAsProcedure(int methodNumber, IValue[] arguments)
         {
-/*
-            var paramArray = IntPtr.Zero;
             int paramCount = NativeApiProxy.GetNParams(_object, methodNumber);
-            if (paramCount > 0)
-                paramArray = Marshal.AllocHGlobal(NativeApiVariant.Size * paramCount);
-            SetDefValues(methodNumber, paramCount, arguments);
-            NativeApiVariant.SetValue(paramArray, arguments, paramCount);
-            NativeApiProxy.CallAsProc(_object, methodNumber, paramArray);
-            NativeApiVariant.GetValue(arguments, paramArray, paramCount);
-            NativeApiVariant.Clear(paramArray, paramCount);
-            Marshal.FreeHGlobal(paramArray);
-*/
+            using (var variant = new NativeApiVariant(paramCount))
+            {
+                SetDefValues(methodNumber, paramCount, arguments);
+                for (int i = 0; i < paramCount; i++)
+                    variant.Assign(arguments[i], i);
+
+                NativeApiProxy.CallAsProc(_object, methodNumber, variant.Ptr);
+            }
         }
 
         public void CallAsFunction(int methodNumber, IValue[] arguments, out IValue retValue)
