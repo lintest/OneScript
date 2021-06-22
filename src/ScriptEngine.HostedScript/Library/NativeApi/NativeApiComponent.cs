@@ -140,17 +140,17 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         {
             IValue result = ValueFactory.Create();
             NativeApiProxy.GetPropVal(_object, propNum,
-                variant => result = GetVariant(variant)
+                var => result = GetVariant(var)
             );
             return result;
         }
 
         public void SetPropValue(int propNum, IValue value)
         {
-            IntPtr variant = NativeApiProxy.CreateVariant(1);
-            SetVariant(value, variant);
-            NativeApiProxy.SetPropVal(_object, propNum, variant);
-            NativeApiProxy.FreeVariant(variant);
+            using (var variant = new NativeApiVariant()) {
+                variant.SetVariant(value);
+                NativeApiProxy.SetPropVal(_object, propNum, variant.Ptr);
+            };
         }
 
         public int GetMethodsCount()
@@ -183,11 +183,13 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             for (int i = 0; i < paramCount; i++)
                 NativeApiProxy.GetParamDefValue(_object, methodNumber, i, variant =>
                 {
+/*
                     if (NativeApiVariant.NotEmpty(variant))
                     {
                         paramArray[i].HasDefaultValue = true;
                         paramArray[i].DefaultValueIndex = ParameterDefinition.UNDEFINED_VALUE_INDEX;
                     }
+*/
                 });
 
             return new MethodInfo
