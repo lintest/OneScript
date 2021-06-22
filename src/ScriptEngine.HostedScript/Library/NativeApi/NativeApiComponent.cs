@@ -140,7 +140,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         {
             IValue result = ValueFactory.Create();
             NativeApiProxy.GetPropVal(_object, propNum,
-                var => result = GetVariant(var)
+                variant => result = NativeApiVariant.Value(variant)
             );
             return result;
         }
@@ -148,7 +148,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public void SetPropValue(int propNum, IValue value)
         {
             using (var variant = new NativeApiVariant()) {
-                variant.SetVariant(value);
+                variant.Assign(value);
                 NativeApiProxy.SetPropVal(_object, propNum, variant.Ptr);
             };
         }
@@ -251,48 +251,6 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             if (ok)
                 retValue = result;
 */
-        }
-
-        private void SetVariant(IValue value, IntPtr variant, Int32 number = 0)
-        {
-            switch (value.DataType)
-            {
-                case DataType.String:
-                    String str = value.AsString();
-                    NativeApiProxy.SetVariantStr(variant, number, str, str.Length);
-                    break;
-                case DataType.Boolean:
-                    NativeApiProxy.SetVariantBool(variant, number, value.AsBoolean());
-                    break;
-                case DataType.Number:
-                    Decimal num = value.AsNumber();
-                    if (num % 1 == 0)
-                        NativeApiProxy.SetVariantInt(variant, number, Convert.ToInt32(value.AsNumber()));
-                    else
-                        NativeApiProxy.SetVariantReal(variant, number, Convert.ToDouble(value.AsNumber()));
-                    break;
-                default:
-                    NativeApiProxy.SetVariantEmpty(variant, number);
-                    break;
-            }
-        }
-
-        private IValue GetVariant(IntPtr variant, Int32 number = 0)
-        {
-            IValue value = ValueFactory.Create();
-            NativeApiProxy.GetVariant(variant, number,
-                (v, n) => value = ValueFactory.Create(),
-                (v, n, r) => value = ValueFactory.Create(r),
-                (v, n, r) => value = ValueFactory.Create((Decimal)r),
-                (v, n, r) => value = ValueFactory.Create((Decimal)r),
-                (v, n, r, s) => value = ValueFactory.Create(Marshal.PtrToStringUni(r, s)),
-                (v, n, r, s) => {
-                    byte[] buffer = new byte[s];
-                    Marshal.Copy(r, buffer, 0, s);
-                    value = ValueFactory.Create(new BinaryDataContext(buffer));
-                }
-            );
-            return value;
         }
     }
 }

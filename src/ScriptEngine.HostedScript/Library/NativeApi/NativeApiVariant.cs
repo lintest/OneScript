@@ -34,7 +34,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
                 NativeApiProxy.FreeVariant(variant);
         }
 
-        public void SetVariant(IValue value, Int32 number = 0)
+        public void Assign(IValue value, Int32 number = 0)
         {
             switch (value.DataType)
             {
@@ -56,6 +56,23 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
                     NativeApiProxy.SetVariantEmpty(variant, number);
                     break;
             }
+        }
+        public static IValue Value(IntPtr variant, Int32 number = 0)
+        {
+            IValue value = ValueFactory.Create();
+            NativeApiProxy.GetVariant(variant, number,
+                (v, n) => value = ValueFactory.Create(),
+                (v, n, r) => value = ValueFactory.Create(r),
+                (v, n, r) => value = ValueFactory.Create((Decimal)r),
+                (v, n, r) => value = ValueFactory.Create((Decimal)r),
+                (v, n, r, s) => value = ValueFactory.Create(Marshal.PtrToStringUni(r, s)),
+                (v, n, r, s) => {
+                    byte[] buffer = new byte[s];
+                    Marshal.Copy(r, buffer, 0, s);
+                    value = ValueFactory.Create(new BinaryDataContext(buffer));
+                }
+            );
+            return value;
         }
     }
 }
