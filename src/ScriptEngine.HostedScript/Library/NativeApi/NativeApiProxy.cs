@@ -64,7 +64,10 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public delegate void TSetVariantStr(IntPtr ptr, Int32 num, [MarshalAs(UnmanagedType.LPWStr)] string value, Int32 length);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate void TSetVariantBlob(IntPtr ptr, Int32 num, IntPtr data, Int32 length);
+        public delegate void TSetVariantPtr(IntPtr ptr, Int32 num, IntPtr value, Int32 length);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate void TSetVariantBlob(IntPtr ptr, Int32 num, byte[] data, Int32 length);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public delegate void TGetVariant(IntPtr ptr, Int32 num
@@ -72,8 +75,8 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             , TSetVariantBool b
             , TSetVariantInt i
             , TSetVariantReal r
-            , TSetVariantBlob s
-            , TSetVariantBlob x
+            , TSetVariantPtr s
+            , TSetVariantPtr x
         );
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -118,6 +121,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
         public static TSetVariantEmpty SetVariantEmpty;
         public static TSetVariantBool SetVariantBool;
         public static TSetVariantReal SetVariantReal;
+        public static TSetVariantBlob SetVariantBlob;
         public static TSetVariantInt SetVariantInt;
         public static TSetVariantStr SetVariantStr;
         public static TGetNMethods GetNMethods;
@@ -152,6 +156,7 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
             SetVariantEmpty = Marshal.GetDelegateForFunctionPointer<TSetVariantEmpty>(NativeApiKernel.GetProcAddress(module, "SetVariantEmpty"));
             SetVariantBool = Marshal.GetDelegateForFunctionPointer<TSetVariantBool>(NativeApiKernel.GetProcAddress(module, "SetVariantBool"));
             SetVariantReal = Marshal.GetDelegateForFunctionPointer<TSetVariantReal>(NativeApiKernel.GetProcAddress(module, "SetVariantReal"));
+            SetVariantBlob = Marshal.GetDelegateForFunctionPointer<TSetVariantBlob>(NativeApiKernel.GetProcAddress(module, "SetVariantBlob"));
             SetVariantInt = Marshal.GetDelegateForFunctionPointer<TSetVariantInt>(NativeApiKernel.GetProcAddress(module, "SetVariantInt"));
             SetVariantStr = Marshal.GetDelegateForFunctionPointer<TSetVariantStr>(NativeApiKernel.GetProcAddress(module, "SetVariantStr"));
             GetVariant = Marshal.GetDelegateForFunctionPointer<TGetVariant>(NativeApiKernel.GetProcAddress(module, "GetVariant"));

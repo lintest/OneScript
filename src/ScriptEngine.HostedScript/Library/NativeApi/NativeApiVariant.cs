@@ -52,6 +52,9 @@ namespace ScriptEngine.HostedScript.Library.NativeApi
                     else
                         NativeApiProxy.SetVariantReal(variant, number, Convert.ToDouble(value.AsNumber()));
                     break;
+                case DataType.Object when value.AsObject() is BinaryDataContext binaryData:
+                    NativeApiProxy.SetVariantBlob(variant, number, binaryData.Buffer, binaryData.Buffer.Length);
+                    break;
                 default:
                     NativeApiProxy.SetVariantEmpty(variant, number);
                     break;
